@@ -45,3 +45,12 @@ def test_ig_budget(tmp_path, monkeypatch):
         store.ig_tag_used(f"t{i}")
     ok, refused = store.ig_tag_budget(["t1", "new1", "new2"])
     assert ok == ["t1", "new1"] and refused == ["new2"]
+
+
+def test_giveaway():
+    assert score.is_giveaway("¡CONCURSO! GANA 2 ENTRADAS PARA HUILO HUILO")
+    assert score.is_giveaway("GIVEAWAY time: tag a friend to enter")
+    assert score.is_giveaway("Enter to win a new wetsuit")
+    assert not score.is_giveaway("How I won my first regatta")
+    assert not score.is_giveaway("Sail trim explained")
+    assert not score.is_giveaway(None)

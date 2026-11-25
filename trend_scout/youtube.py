@@ -65,7 +65,7 @@ def outliers(line: str, days: int = 30, min_ratio: float = 3.0, per_query: int =
         h = hours_since(posted)
         ratio = score.outlier_ratio(views, subs)
         # a 3-subscriber channel with 90 views is noise, not a trend: require real reach too
-        if ratio is None or ratio < min_ratio or views < min_views:
+        if ratio is None or ratio < min_ratio or views < min_views or score.is_giveaway(sn.get("title")):
             continue
         items.append({
             "source": "youtube", "id": vid, "title": sn.get("title", ""), "channel": sn.get("channelTitle", ""),

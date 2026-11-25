@@ -60,7 +60,8 @@ def _media_item(m: dict, extra: dict) -> dict:
     }
 
 
-def hashtag_top(line: str, limit: int = 25, tags: list[str] | None = None) -> dict:
+def hashtag_top(line: str, limit: int = 25, tags: list[str] | None = None,
+                min_age_hours: float = 12, min_likes: int = 50) -> dict:
     tok, uid = _creds()
     if not tok:
         return {"line": line, "items": [], "errors": ["Instagram: not connected (README: Instagram setup)"]}
@@ -81,7 +82,11 @@ def hashtag_top(line: str, limit: int = 25, tags: list[str] | None = None) -> di
     uniq = {}
     for it in items:
         uniq.setdefault(it["url"], it)
-    items = sorted(uniq.values(), key=lambda x: x.get("velocity") or 0, reverse=True)[:limit]
+    # an hour-old post with 3 likes isn't a trend yet, and giveaways collect comments from entries, not interest
+    items = [i for i in uniq.values()
+             if (i.get("hours_old") or 0) >= min_age_hours and (i["metrics"].get("likes") or 0) >= min_likes
+             and not score.is_giveaway(i.get("title"))]
+    items = sorted(items, key=lambda x: x.get("velocity") or 0, reverse=True)[:limit]
     st = token_status()
     if st.get("warning"):
         errors.append(st["warning"])

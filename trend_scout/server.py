@@ -3,7 +3,7 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
-from . import hooks, instagram, reddit, score, store, tiktok, youtube
+from . import brief, hooks, instagram, reddit, score, store, tiktok, youtube
 from .common import niches, redact
 
 mcp = FastMCP("trend-scout")
@@ -71,32 +71,10 @@ def scout_brief(line: str, include_seen: bool = False) -> dict:
     """The week's top 10 for one line across Reddit, YouTube and Instagram, interleaved by rank within each source,
     leaving out anything shown in an earlier brief (include_seen=True to keep them). Plus this week's cached TikTok
     trending hashtags (listed apart: ranks, not counts). Each item keeps its numbers and its link."""
-    sources, errors = [], []
-    for name, fn, key in (("reddit", lambda: reddit.top(line), "velocity"),
-                          ("youtube", lambda: youtube.outliers(line), "outlier"),
-                          ("instagram", lambda: instagram.hashtag_top(line), "velocity")):
-        try:
-            out = fn()
-        except Exception as e:
-            errors.append(f"{name}: {type(e).__name__}: {redact(e)[:120]}")
-            continue
-        errors += out.get("errors", [])
-        items = out["items"]
-        store.remember(items, line)
-        if not include_seen:
-            items = [i for i in items if not i.get("briefed_before")]
-        score.rank_norm(items, key)
-        for i in items:
-            i["rank_score"] = round(i["rank_score"] + 0.25 * (i.get("intent") or 0), 3)
-        sources.append(items)
-    top = sorted((i for s in sources for i in s), key=lambda x: x["rank_score"], reverse=True)[:10]
-    store.mark_briefed([i["url"] for i in top])
-    for i in top:
-        i.pop("text", None)
-        i["top_comments"] = i.get("top_comments", [])[:3]
+    b = brief.build(line, include_seen=include_seen)
     tt = store.cache_get("tiktok:hashtag:7", 24 * 7)
-    return {"line": line, "top": top, "tiktok_hashtags_this_week": (tt or {}).get("items", [])[:20] or None,
-            "errors": errors, "lines": _lines()}
+    return {"line": line, "top": b["top"], "tiktok_hashtags_this_week": (tt or {}).get("items", [])[:20] or None,
+            "errors": b["errors"], "lines": _lines()}
 
 
 def main():

@@ -6,6 +6,15 @@ INTENT = re.compile(r"\b(how (do|did|does|can|to)|tutorial|need this|link|where 
                     r"which (one|app|brand)|save(d)? this|sauce)\b|(^|\s)@\w", re.I)
 
 
+GIVEAWAY = re.compile(r"\b(giveaway|give away|contest|sweepstakes?|enter to win|chance to win|win (a|an|2|two)\b|concurso|sorteo|"
+                      r"gana[rs]?\b|tag (a|\d+|two|three) friends? to)|\b(gewinnspiel|concours)\b", re.I)
+
+
+def is_giveaway(text: str | None) -> bool:
+    """Contests and giveaways rack up comments from entries, not interest: leave them out of trends."""
+    return bool(text and GIVEAWAY.search(text))
+
+
 def velocity(likes: float, comments: float = 0, shares: float = 0, hours: float = 1.0) -> float:
     """(shares*3 + comments*2 + likes) / hours^1.5. Newer posts with the same engagement score higher."""
     return round((shares * 3 + comments * 2 + likes) / max(hours, 1.0) ** 1.5, 3)
