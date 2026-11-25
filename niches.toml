@@ -1,0 +1,46 @@
+# Per line: subreddits (no r/), YouTube search phrases, Instagram hashtags (no #).
+# Pick subreddits where your buyer already talks, and YouTube phrases in the buyer's own words.
+# Keep IG tags few: Meta allows 30 different hashtags per rolling 7 days across all lines (19 used below).
+
+[coaching]
+min_views = 300  # small niche on YouTube
+subs = ["CEO", "Entrepreneur", "startups", "ExperiencedFounders", "VC"]
+youtube = ["founder burnout", "CEO morning routine", "founder health energy", "entrepreneur burnout recovery"]
+instagram = ["founderlife", "ceolife", "executivecoach"]
+
+[mb2]
+subs = ["sailing", "dinghysailing", "yachtracing", "xxfitness", "fitness30plus"]
+youtube = ["sailing workout", "sailing fitness", "women sailing", "dinghy sailing tips"]
+instagram = ["womenwhosail", "dinghysailing", "sailingfitness"]
+
+[dmv]
+subs = ["trailrunning", "ultrarunning", "climbharder", "climbergirls", "bouldering", "WildernessBackpacking"]
+youtube = ["quads sore after downhill running", "eccentric training trail running descents", "climbing elbow pain strength", "backpacking training plan"]
+instagram = ["trailrunning", "climbergirls", "mountainrunning"]
+
+[snaplog]
+subs = ["loseit", "CICO", "1200isplenty", "Myfitnesspal", "MacroFactor", "Semaglutide", "Zepbound", "gainit"]
+youtube = ["GLP-1 how much protein", "calorie counting easier", "photo food logging app", "what I eat in a day GLP-1"]
+instagram = ["glp1journey", "highprotein", "caloriecounting"]
+
+[campaign]
+subs = ["sailing", "olympics", "dinghysailing", "sportsmarketing"]
+youtube = ["ILCA sailing", "olympic sailor day in the life", "road to the olympics athlete vlog", "athlete sponsorship pitch"]
+instagram = ["ilca", "olympicsailing", "roadtola28"]
+
+[portfolio]
+subs = ["AiForSmallBusiness", "smallbusiness", "automation", "n8n", "ClaudeAI", "ClaudeCode"]
+youtube = ["AI automation small business", "claude code agents", "AI receptionist small business", "build AI agent workflow"]
+instagram = ["aiautomation", "buildinpublic"]
+
+# --- paused lines
+
+[packlist]
+subs = ["Ultralight", "WildernessBackpacking", "backpacking", "PacificCrestTrail", "JMT", "CampingGear"]
+youtube = ["backpacking gear list", "ultralight packing list", "PCT gear"]
+instagram = ["ultralightbackpacking"]
+
+[char]
+subs = ["sailing", "bayarea", "tahoe", "SkiBuddies"]
+youtube = ["sailing club culture", "outdoor club merch"]
+instagram = ["sailingclub"]
