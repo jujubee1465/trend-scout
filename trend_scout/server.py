@@ -4,7 +4,7 @@ import os
 from mcp.server.fastmcp import FastMCP
 
 from . import hooks, instagram, reddit, score, store, tiktok, youtube
-from .common import niches
+from .common import niches, redact
 
 mcp = FastMCP("trend-scout")
 UNATTENDED = os.environ.get("ENTERPRISE_HEADLESS") == "1"
@@ -78,7 +78,7 @@ def scout_brief(line: str, include_seen: bool = False) -> dict:
         try:
             out = fn()
         except Exception as e:
-            errors.append(f"{name}: {type(e).__name__}: {str(e)[:120]}")
+            errors.append(f"{name}: {type(e).__name__}: {redact(e)[:120]}")
             continue
         errors += out.get("errors", [])
         items = out["items"]

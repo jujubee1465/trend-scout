@@ -56,7 +56,11 @@ def from_audio(url: str) -> str | None:
             return None
         res = mlx_whisper.transcribe(str(files[0]), path_or_hf_repo=WHISPER_MODEL, word_timestamps=True, language="en")
         words = [(w["start"], w["word"]) for seg in res.get("segments", []) for w in seg.get("words", [])]
-        return _words(words) or None
+        text = _words(words) or None
+        # on music or silence Whisper tends to invent a sign-off ("Thanks for watching"): treat as no speech
+        if text and text.strip(" .!,").lower() in {"thanks", "thank you", "thanks for watching", "thank you for watching", "you", "bye"}:
+            return None
+        return text
 
 
 def hook(url: str, allow_audio: bool = True) -> dict:

@@ -5,7 +5,13 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+import logging
+
 import httpx
+
+# httpx logs every request URL at INFO; never let a key or token reach a log or a tool result
+for _name in ("httpx", "httpcore"):
+    logging.getLogger(_name).setLevel(logging.WARNING)
 
 ROOT = Path(__file__).resolve().parent.parent
 UA = "trend-scout/0.1 (personal read-only research tool; macOS)"
@@ -49,3 +55,17 @@ def hours_since(ts: dt.datetime) -> float:
 
 def iso(ts: dt.datetime) -> str:
     return ts.astimezone(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def redact(text: str) -> str:
+    """Strip any stored secret (and key=/token= query values) out of an error message."""
+    import re
+    text = re.sub(r"((?:key|access_token|input_token|client_secret|fb_exchange_token)=)[^&\s'\"]+", r"\1***", str(text))
+    for name in ("YOUTUBE_API_KEY", "IG_ACCESS_TOKEN", "IG_APP_SECRET", "REDDIT_CLIENT_SECRET"):
+        try:
+            v = secret(name)
+        except Exception:
+            v = None
+        if v and len(v) > 8:
+            text = text.replace(v, "***")
+    return text

@@ -6,7 +6,7 @@ business/creator accounts."""
 import datetime as dt
 
 from . import score, store
-from .common import client, hours_since, iso, line_cfg, secret
+from .common import client, hours_since, iso, line_cfg, secret, redact
 
 GRAPH = "https://graph.facebook.com/v21.0"
 MEDIA_FIELDS = "id,caption,like_count,comments_count,media_type,permalink,timestamp"
@@ -17,8 +17,10 @@ def _creds():
     return (tok, uid) if tok and uid else (None, None)
 
 
-def _get(http, path, **params):
-    r = http.get(f"{GRAPH}/{path}", params=params)
+def _get(http, path, access_token=None, **params):
+    # the token goes in a header, not the URL, so it never shows up in logs or errors
+    r = http.get(f"{GRAPH}/{path}", params=params,
+                 headers={"Authorization": f"Bearer {access_token}"} if access_token else None)
     j = r.json() if r.headers.get("content-type", "").startswith(("application/json", "text/javascript")) else {}
     if r.status_code != 200 or "error" in j:
         raise RuntimeError(f"Instagram {path.split('/')[-1]}: {j.get('error', {}).get('message', r.text[:120])}")
@@ -32,7 +34,7 @@ def token_status() -> dict:
     try:
         d = _get(client(), "debug_token", input_token=tok, access_token=tok).get("data", {})
     except Exception as e:
-        return {"connected": False, "note": str(e)}
+        return {"connected": False, "note": redact(e)}
     exp = d.get("expires_at") or d.get("data_access_expires_at")
     out = {"connected": bool(d.get("is_valid")), "scopes": d.get("scopes", [])}
     if exp:
@@ -75,7 +77,7 @@ def hashtag_top(line: str, limit: int = 25, tags: list[str] | None = None) -> di
                 res = _get(http, f"{hid}/{edge}", user_id=uid, fields=MEDIA_FIELDS, limit=limit, access_token=tok)
                 items += [_media_item(m, {"hashtag": tag, "edge": edge}) for m in res.get("data", [])]
         except Exception as e:
-            errors.append(f"#{tag}: {e}")
+            errors.append(f"#{tag}: {redact(e)}")
     uniq = {}
     for it in items:
         uniq.setdefault(it["url"], it)
@@ -97,7 +99,7 @@ def creator(username: str, posts: int = 25) -> dict:
     except Exception as e:
         hint = ("the token needs the read-only instagram_manage_insights permission (README: Instagram setup)"
                 if "(#10)" in str(e) else "Business Discovery only sees business/creator accounts")
-        return {"username": u, "items": [], "errors": [f"{e} ({hint})"]}
+        return {"username": u, "items": [], "errors": [f"{redact(e)} ({hint})"]}
     media = bd.get("media", {}).get("data", [])
     items = [_media_item(m, {"account": u}) for m in media]
     eng = [(it["metrics"]["likes"] or 0) + 2 * (it["metrics"]["comments"] or 0) for it in items]

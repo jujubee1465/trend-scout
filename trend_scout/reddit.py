@@ -52,6 +52,9 @@ def top(line: str, days: int = 7, limit: int = 25, comments_for: int = 8) -> dic
     cfg = line_cfg(line)
     t = "day" if days <= 1 else "week" if days <= 7 else "month"
     rd, items, errors = Reddit(), [], []
+    if not rd.oauth:  # Reddit answers 403 to every keyless read: don't hammer it, just say so once
+        return {"line": line, "mode": "off", "items": [],
+                "errors": ["Reddit not connected yet: needs REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET (README: Keys)"]}
     for sub in cfg.get("subs", []):
         try:
             posts = rd.top(sub, t, limit)
