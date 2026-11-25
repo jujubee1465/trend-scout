@@ -1,4 +1,4 @@
-from trend_scout import score, hooks
+from trend_scout import score, hooks, thumbs
 
 
 def test_velocity_prefers_newer():
@@ -54,3 +54,24 @@ def test_giveaway():
     assert not score.is_giveaway("How I won my first regatta")
     assert not score.is_giveaway("Sail trim explained")
     assert not score.is_giveaway(None)
+
+
+def test_cover_text_cleanup():
+    lines = [("I LOST 98 LBS", 0.98), ("on a GLP-1", 0.9), ("@someone", 0.99), ("www.site.com", 0.9),
+             ("YouTube", 0.95), ("12:45", 0.9), ("blurry bit", 0.2)]
+    assert thumbs.clean(lines) == "I LOST 98 LBS / on a GLP-1"
+    assert thumbs.clean([("@only_a_handle", 0.99)]) is None
+    assert thumbs.clean([]) is None
+    long = ("one two three four five six seven eight nine ten eleven twelve thirteen", 0.9)
+    assert thumbs.clean([long]) is None
+
+
+def test_cover_text_drops_fragments():
+    lines = [("HIS BOAT SANK", 0.95), ("SHE SAVED HIM", 0.95), ("HIS", 0.9), ("ANK", 0.8)]
+    assert thumbs.clean(lines) == "HIS BOAT SANK / SHE SAVED HIM"
+
+
+def test_cover_text_big_type_and_repeats():
+    lines = [("lactic acid: never rose", 0.95, 0.12), ("Lactic acid never rose.", 0.9, 0.10),
+             ("Al is reading your plate", 0.7, 0.03), ("+ Aralyzieg your masl...", 0.5, 0.02)]
+    assert thumbs.clean(lines) == "lactic acid: never rose"

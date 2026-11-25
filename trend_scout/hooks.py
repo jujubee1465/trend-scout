@@ -24,15 +24,36 @@ def _words(segments: list[tuple[float, str]]) -> str:
     return " ".join(out[:MAX_WORDS])
 
 
-def from_captions(vid: str) -> str | None:
+class CaptionsBlocked(Exception):
+    """YouTube refused caption reads from this machine (too many requests). We back off; no proxies or workarounds."""
+
+
+BLOCK_HOURS = 24
+
+
+def captions(vid: str) -> list[tuple[float, str]] | None:
+    """Timed caption lines, None when the video has none. Raises CaptionsBlocked while YouTube is limiting us
+    (then nothing is asked again for BLOCK_HOURS)."""
+    from . import store
+    if store.cache_get("yt-captions-blocked", BLOCK_HOURS):
+        raise CaptionsBlocked
     from youtube_transcript_api import YouTubeTranscriptApi
     try:
-        api = YouTubeTranscriptApi()
-        fetched = api.fetch(vid, languages=["en", "en-US", "en-GB"])
-        segs = [(s.start, s.text) for s in fetched]
-    except Exception:
+        fetched = YouTubeTranscriptApi().fetch(vid, languages=["en", "en-US", "en-GB"])
+        return [(s.start, " ".join(s.text.split())) for s in fetched]
+    except Exception as e:
+        if type(e).__name__ in ("IpBlocked", "RequestBlocked", "TooManyRequests", "YouTubeRequestFailed"):
+            store.cache_put("yt-captions-blocked", {"why": type(e).__name__})
+            raise CaptionsBlocked from None
         return None
-    return _words(segs) or None
+
+
+def from_captions(vid: str) -> str | None:
+    try:
+        segs = captions(vid)
+    except CaptionsBlocked:
+        return None
+    return _words(segs) if segs else None
 
 
 def from_audio(url: str) -> str | None:
@@ -75,3 +96,9 @@ def hook(url: str, allow_audio: bool = True) -> dict:
     if text:
         return {"url": url, "hook": text, "method": "whisper (on device)"}
     return {"url": url, "hook": None, "method": "none", "note": "no captions and no speech found (or the link isn't public)"}
+
+
+if __name__ == "__main__":  # python -m trend_scout.hooks URL  →  one JSON line (used by a dashboard's "Get spoken hook")
+    import json
+    import sys
+    print(json.dumps(hook(sys.argv[1])))

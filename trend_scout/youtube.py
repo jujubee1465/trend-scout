@@ -71,6 +71,8 @@ def outliers(line: str, days: int = 30, min_ratio: float = 3.0, per_query: int =
             "source": "youtube", "id": vid, "title": sn.get("title", ""), "channel": sn.get("channelTitle", ""),
             "url": f"https://www.youtube.com/watch?v={vid}", "posted": iso(posted), "hours_old": round(h, 1),
             "duration": v.get("contentDetails", {}).get("duration"),
+            "caption": " ".join((sn.get("description") or "").split())[:300] or None,
+            "thumb": ((sn.get("thumbnails") or {}).get("high") or (sn.get("thumbnails") or {}).get("medium") or {}).get("url"),
             "metrics": {"views": views, "likes": likes, "comments": comments, "subscribers": subs,
                         "views_per_hour": round(views / h, 1)},
             "outlier": ratio, "velocity": score.velocity(likes, comments, 0, h),

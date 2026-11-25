@@ -9,7 +9,7 @@ from . import score, store
 from .common import client, hours_since, iso, line_cfg, secret, redact
 
 GRAPH = "https://graph.facebook.com/v21.0"
-MEDIA_FIELDS = "id,caption,like_count,comments_count,media_type,permalink,timestamp"
+MEDIA_FIELDS = "id,caption,like_count,comments_count,media_type,permalink,timestamp,media_url,children{media_url,media_type}"
 
 
 def _creds():
@@ -54,10 +54,22 @@ def _media_item(m: dict, extra: dict) -> dict:
     return {
         "source": "instagram", "id": m["id"], "url": m.get("permalink") or f"https://www.instagram.com/p/{m['id']}",
         "title": cap.split("\n")[0][:160], "hook": cap.split("\n")[0][:160] or None, "type": m.get("media_type"),
+        "caption": cap[:2200] or None, "thumb": _cover(m),
         "posted": iso(ts) if ts else None, "hours_old": round(h, 1) if h else None,
         "metrics": {"likes": likes, "comments": comments},
         "velocity": score.velocity(likes or 0, comments or 0, 0, h) if h and likes is not None else None, **extra,
     }
+
+
+def _cover(m: dict) -> str | None:
+    """An image URL to read cover text from. Hashtag results give media_url for images and carousels' first
+    image; videos usually give none (the API hides other accounts' video covers), so those return None."""
+    if m.get("media_type") == "IMAGE" and m.get("media_url"):
+        return m["media_url"]
+    for ch in (m.get("children") or {}).get("data", []):
+        if ch.get("media_type") == "IMAGE" and ch.get("media_url"):
+            return ch["media_url"]
+    return m.get("thumbnail_url")
 
 
 def hashtag_top(line: str, limit: int = 25, tags: list[str] | None = None,
