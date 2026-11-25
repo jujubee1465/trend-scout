@@ -36,7 +36,7 @@ It asks for the value, so it never lands in your shell history.
 ## Instagram setup (about 20 minutes, once)
 1. In the Instagram app: make the account Professional (Creator or Business) and link it to a Facebook Page.
 2. developers.facebook.com → My Apps → Create app → "Other" → **Business**. Add the **Instagram Graph API** product. Dev mode is fine, since it's only your own account.
-3. Graph API Explorer: pick the app, get a User token with `instagram_basic`, `pages_show_list`, `pages_read_engagement`, `business_management`. Exchange it for a long-lived token (Access Token Debugger → "Extend Access Token", about 60 days) and save it as `IG_ACCESS_TOKEN`.
+3. Graph API Explorer: pick the app, get a User token with `instagram_basic`, `pages_show_list`, `pages_read_engagement`, `business_management`, plus `instagram_manage_insights` (read-only; creator lookups need it). Exchange it for a long-lived token (Access Token Debugger → "Extend Access Token", about 60 days, or `oauth/access_token?grant_type=fb_exchange_token` with the app secret) and save it as `IG_ACCESS_TOKEN`. Save it with `-w "$(pbpaste)"`: the interactive `-w` prompt cuts input at 128 characters and these tokens are longer.
 4. In the Explorer: `GET me/accounts?fields=instagram_business_account` gives the Instagram id; save it as `IG_USER_ID`.
 5. Refresh the token before it expires. Tool results warn 7 days ahead.
 

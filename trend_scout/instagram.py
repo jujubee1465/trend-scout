@@ -95,7 +95,9 @@ def creator(username: str, posts: int = 25) -> dict:
     try:
         bd = _get(client(), uid, fields=fields, access_token=tok)["business_discovery"]
     except Exception as e:
-        return {"username": u, "items": [], "errors": [f"{e} (Business Discovery only sees business/creator accounts)"]}
+        hint = ("the token needs the read-only instagram_manage_insights permission (README: Instagram setup)"
+                if "(#10)" in str(e) else "Business Discovery only sees business/creator accounts")
+        return {"username": u, "items": [], "errors": [f"{e} ({hint})"]}
     media = bd.get("media", {}).get("data", [])
     items = [_media_item(m, {"account": u}) for m in media]
     eng = [(it["metrics"]["likes"] or 0) + 2 * (it["metrics"]["comments"] or 0) for it in items]
